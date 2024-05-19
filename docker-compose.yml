@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  pg_db:
+    image: postgres:12.19-bullseye
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - ./postgres_db_data:/var/lib/postgresql:rw
+      - ./postgres_files:/home/postgres:rw
+    ports:
+      - "5432:5432"
