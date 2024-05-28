@@ -50,9 +50,12 @@ COMMENT ON SCHEMA book_store IS 'Книги, авторы, тематическ�
 -- DROP TABLE IF EXISTS book_store.genre;
 CREATE TABLE book_store.genre
 (
-	genre_id	serial	PRIMARY KEY,
-	parent		integer NOT NULL DEFAULT currval('book_store.genre_genre_id_seq'::regclass)
-				        REFERENCES book_store.genre (genre_id) ON UPDATE CASCADE ON DELETE RESTRICT,
+	genre_id	serial	PRIMARY KEY, -- идентификатор
+	parent		integer NOT NULL DEFAULT currval('book_store.genre_genre_id_seq'::regclass) -- родитель. Для родителя сам на себя
+				-- если родитель не указан в поле, то DEFAULT = currval сделает его равным айди текущего элемента, то есть сам на себя (и станет родителем)
+				-- regclass - преобразовать значение
+						REFERENCES book_store.genre (genre_id) ON UPDATE CASCADE ON DELETE RESTRICT, 
+						-- при создании внешнего ключа запретить удаление а при обновлении ключа менять и связанные записи (тк в них ссылка)
 	-- поле будет добавлено во 2-й части курса
 	-- genre_code	ltree	NOT NULL,
 	genre_name	varchar(511) NOT NULL UNIQUE
@@ -60,7 +63,7 @@ CREATE TABLE book_store.genre
 
 ALTER TABLE book_store.genre OWNER TO student;
 
-CREATE INDEX i1_genre ON book_store.genre USING btree (parent);
+CREATE INDEX i1_genre ON book_store.genre USING btree (parent); -- создадим btree индекс для parent для ускорения поиска
 
 COMMENT ON TABLE book_store.genre
 IS 'Список жанров (этакий условный тематический рубрикатор)
