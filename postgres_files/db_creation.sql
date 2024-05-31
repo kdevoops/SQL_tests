@@ -41,14 +41,14 @@ CREATE EXTENSION ltree SCHEMA public;
 
 
 
--- DROP SCHEMA IF EXISTS book_store;
-CREATE SCHEMA book_store AUTHORIZATION student;
+DROP SCHEMA IF EXISTS book_store;
+CREATE SCHEMA  book_store AUTHORIZATION student;
 
 COMMENT ON SCHEMA book_store IS 'Книги, авторы, тематический рубрикатор и всё прочее, связанное с книгами';
 -----------------------------------------------------------------------------------------------------------------------------
 
 -- DROP TABLE IF EXISTS book_store.genre;
-CREATE TABLE book_store.genre
+CREATE TABLE IF NOT EXISTS book_store.genre
 (
 	genre_id	serial	PRIMARY KEY, -- идентификатор
 	parent		integer NOT NULL DEFAULT currval('book_store.genre_genre_id_seq'::regclass) -- родитель. Для родителя сам на себя
@@ -86,7 +86,7 @@ COMMENT ON COLUMN book_store.genre.genre_name		IS 'Наименование жа
 -----------------------------------------------------------------------------------------------------------------------------
 
 -- DROP TABLE IF EXISTS book_store.book;
-CREATE TABLE book_store.book
+CREATE TABLE IF NOT EXISTS book_store.book
 (
 	book_id		serial 		PRIMARY KEY,
 	book_name	varchar(255) 	NOT NULL,
@@ -116,7 +116,7 @@ COMMENT ON COLUMN book_store.book.genre_id	IS 'Жанр';
 
 
 -- DROP TABLE IF EXISTS book_store.author;
-CREATE TABLE book_store.author
+CREATE TABLE IF NOT EXISTS book_store.author
 (
 	author_id	serial PRIMARY KEY,
 	author_name	varchar(127) NOT NULL UNIQUE,
@@ -146,7 +146,7 @@ COMMENT ON COLUMN book_store.author.biography		IS 'Краткая биограф
 
 
 -- DROP TABLE IF EXISTS book_store.book_author;
-CREATE TABLE book_store.book_author
+CREATE TABLE IF NOT EXISTS book_store.book_author
 (
 	book_id	integer NOT NULL REFERENCES book_store.book (book_id) ON UPDATE CASCADE ON DELETE CASCADE,
 	author_id	integer NOT NULL REFERENCES book_store.author (author_id) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -170,7 +170,7 @@ COMMENT ON COLUMN book_store.book_author.author_id	IS 'Автор';
 -----------------------------------------------------------------------------------------------------------------------------
 
 -- DROP TABLE IF EXISTS book_store.price_category;
-CREATE TABLE book_store.price_category
+CREATE TABLE IF NOT EXISTS book_store.price_category
 (
 	price_category_no	integer		PRIMARY KEY,
 	category_name		varchar (63) NOT NULL UNIQUE
@@ -192,7 +192,7 @@ COMMENT ON COLUMN book_store.price_category.category_name	IS 'Наименова
 
 
 -- DROP TABLE IF EXISTS book_store.price;
-CREATE TABLE book_store.price
+CREATE TABLE IF NOT EXISTS book_store.price
 (
 	price_id			serial PRIMARY KEY,
 	book_id				integer NOT NULL REFERENCES book_store.book (book_id) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -226,12 +226,12 @@ COMMENT ON COLUMN book_store.price.price_expired	IS 'Дата окончания
 -----------------------------------------------------------------------------------------------------------------------------
 
 -- DROP SCHEMA IF EXISTS shop
-CREATE SCHEMA shop AUTHORIZATION student;
+CREATE SCHEMA IF NOT EXISTS shop AUTHORIZATION student;
 
 COMMENT ON SCHEMA shop IS 'Клиенты и заказы';
 
 -- DROP TABLE IF EXISTS shop.client;
-CREATE TABLE shop.client
+CREATE TABLE IF NOT EXISTS shop.client
 (
 	-- client_id	serial PRIMARY KEY
 	client_login	varchar(31) PRIMARY KEY,
@@ -278,7 +278,7 @@ COMMENT ON CONSTRAINT chk_client_attributes ON shop.client IS 'Хотя бы о�
 
 
 -- DROP TABLE IF EXISTS shop.order_main;
-CREATE TABLE shop.order_main
+CREATE TABLE IF NOT EXISTS shop.order_main
 (
 	order_id		serial 	PRIMARY KEY,
 	client_login		varchar(31)	NOT NULL REFERENCES shop.client (client_login) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -307,7 +307,7 @@ COMMENT ON COLUMN shop.order_main.order_date	IS 'Дата размещения �
 
 -----------------------------------------------------------------------------------------------------------------------------
 -- DROP TABLE IF EXISTS shop.order_detail;
-CREATE TABLE shop.order_detail
+CREATE TABLE IF NOT EXISTS shop.order_detail
 (
 	order_id		integer NOT NULL REFERENCES shop.order_main (order_id) ON UPDATE CASCADE ON DELETE CASCADE,
 	book_id		integer NOT NULL REFERENCES book_store.book (book_id) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -360,109 +360,113 @@ VALUES  (1, 'Базовая цена'),
 	(2, 'Цена VIP клиента'),
 	(3, 'Цена по акции');
 
-COPY book_store.genre (genre_id, parent, genre_name) FROM STDIN;
-1	1	Историческая литература
-2	1	Мемуары и биографии
-3	1	Исторические очерки
-4	3	Очерки об анитчной истории
-5	3	Очерки о средневековье
-6	3	Очерки об истории эпохи возрождения
-7	3	Очерки о новейшей истории
-8	1	Исторические романы
-9	1	Историческая фантастика
-10	2	Биографии художников и музыкантов
-11	2	Биографии путешественников
-12	2	Биографии инженеров и ученых
-13	12	Биографии авиакострукторов
-14	14	Художественная литература
-15	14	Поэзия
-16	14	Проза
-17	17	Техническая литература
-18	17	Компьютеры и программирования
-19	18	Языки программирования
-20	18	Базы данных
-\.
+INSERT INTO book_store.genre (genre_id, parent, genre_name)
+VALUES (1,	1,	'Историческая литература'),
+(2,	1,	'Мемуары и биографии'),
+(3,	1,	'Исторические очерки'),
+(4,	3,	'Очерки об анитчной истории'),
+(5,	3,	'Очерки о средневековье'),
+(6,	3,	'Очерки об истории эпохи возрождения'),
+(7,	3,	'Очерки о новейшей истории'),
+(8,	1,	'Исторические романы'),
+(9,	1,	'Историческая фантастика'),
+(10,	2,	'Биографии художников и музыкантов'),
+(11,	2,	'Биографии путешественников'),
+(12,	2,	'Биографии инженеров и ученых'),
+(13,	12,	'Биографии авиакострукторов'),
+(14,	14,	'Художественная литература'),
+(15,	14,	'Поэзия'),
+(16,	14,	'Проза'),
+(17,	17,	'Техническая литература'),
+(18,	17,	'Компьютеры и программирования'),
+(19,	18,	'Языки программирования'),
+(20,	18,	'Базы данных');
 
 SELECT pg_catalog.setval(pg_get_serial_sequence('book_store.genre', 'genre_id'), COALESCE(max(genre_id), 1), true) FROM book_store.genre;
 
+-- truncate book_store.author; -- очистить таблицу
 
-COPY book_store.author (author_id, author_name, biography) FROM STDIN;
-1	Роберт Уолтерс	\N
-2	Майкл Коулс	\N
-3	Фабио Клаудио Феррачати	\N
-4	Роберт Рей	\N
-5	Дональд Фармер	\N
-6	Кристофер Дж. Дейт	\N
-7	Бьёрн Страуструп	\N
-8	В.Р.Михеев	\N
-9	Г.И.Катышев	\N
-10	Феликс Чуев	\N
-11	А.Н.Пономарев	\N
-12	Леонид Анциелович	\N
-13	Мартин Фаулер	\N
-\.
+INSERT INTO book_store.author (author_id, author_name, biography)
+VALUES
+(1,	'Роберт Уолтерс',NULL),
+(2,	'Майкл Коулс',NULL),
+(3,	'Фабио Клаудио Феррачати',NULL),
+(4,	'Роберт Рей',NULL),
+(5,	'Дональд Фармер',NULL),
+(6,	'Кристофер Дж. Дейт',NULL),
+(7,	'Бьёрн Страуструп',NULL),
+(8,	'В.Р.Михеев',NULL),
+(9,	'Г.И.Катышев',NULL),
+(10,	'Феликс Чуев',NULL),
+(11,	'А.Н.Пономарев',NULL),
+(12,	'Леонид Анциелович',NULL),
+(13,	'Мартин Фаулер',NULL);
+
 
 SELECT pg_catalog.setval(pg_get_serial_sequence('book_store.author', 'author_id'), COALESCE(max(author_id), 1), true) FROM book_store.author;
 
-COPY book_store.book (book_id, book_name, isbn, published, genre_id) FROM STDIN;
-1	SQL Server 2008. Ускоренный курс для профессионалов	978-5-8459-1481-1	\N	19
-2	Введение в системы баз данных	5-8459-0788-8	\N	19
-3	Язык программирования С++. Специальное издание	978-5-7989-0226-2	\N	19
-4	Сикорский	5-7325-0564-4	\N	13
-5	Ильюшин	978-5-235-03285-9	\N	13
-6	Конструктор С.В.Ильюшин	5-203-00139-1	\N	13
-7	Неизвестный Хейнкель	978-5-699-49800-0	\N	13
-8	Неизвестный Юнкерс	978-5-699-58507-6	\N	13
-9	Рефакторинг. Улучшение существующего кода	5-93286-045-6	\N	18
-\.
+INSERT INTO book_store.book (book_id, book_name, isbn, published, genre_id)
+VALUES
+(1,'SQL Server 2008. Ускоренный курс для профессионалов','978-5-8459-1481-1',NULL,19),
+(2,'Введение в системы баз данных','5-8459-0788-8',NULL,19),
+(3,'Язык программирования С++. Специальное издание','978-5-7989-0226-2',NULL,19),
+(4,'Сикорский','5-7325-0564-4',NULL,13),
+(5,'Ильюшин','978-5-235-03285-9',NULL,13),
+(6,'Конструктор С.В.Ильюшин','5-203-00139-1',NULL,13),
+(7,'Неизвестный Хейнкель','978-5-699-49800-0',NULL,13),
+(8,'Неизвестный Юнкерс','978-5-699-58507-6',NULL,13),
+(9,'Рефакторинг. Улучшение существующего кода','5-93286-045-6',NULL,18);
+
 
 SELECT pg_catalog.setval(pg_get_serial_sequence('book_store.book', 'book_id'), COALESCE(max(book_id), 1), true) FROM book_store.book;
 
-COPY book_store.book_author (book_id, author_id) FROM STDIN;
-1	1
-1	2
-1	3
-1	4
-1	5
-2	6
-3	7
-4	8
-4	9
-5	10
-6	11
-7	12
-8	12
-9	13
-\.
+INSERT INTO book_store.book_author (book_id, author_id)
+VALUES
+(1,1),
+(1,2),
+(1,3),
+(1,4),
+(1,5),
+(2,6),
+(3,7),
+(4,8),
+(4,9),
+(5,10),
+(6,11),
+(7,12),
+(8,12),
+(9,13);
 
-COPY book_store.price (price_id, book_id, price_category_no, price_value, price_expired) FROM STDIN;
-1	1	2	1670.00	\N
-2	1	3	1499.99	\N
-3	1	1	1610.00	\N
-4	2	1	1840.50	\N
-5	2	2	1800.00	\N
-6	2	3	1800.00	\N
-7	3	3	10400.00	\N
-8	3	2	1450.50	\N
-9	3	1	1600.00	\N
-10	4	2	900.00	\N
-11	4	3	850.00	\N
-12	4	1	960.50	\N
-13	5	1	450.50	\N
-14	5	2	400.00	\N
-15	5	3	350.00	\N
-16	6	3	400.00	\N
-17	6	2	430.00	\N
-18	6	1	475.00	\N
-19	7	1	465.00	\N
-20	8	3	410.00	\N
-21	8	2	440.00	\N
-22	7	3	410.00	\N
-23	7	2	440.00	\N
-24	8	1	465.00	\N
-25	9	1	590.00	\N
-26	9	3	520.50	\N
-\.
+
+INSERT INTO book_store.price (price_id, book_id, price_category_no, price_value, price_expired)
+VALUES
+(1,1,2,1670.00,NULL),
+(2,1,3,1499.99,NULL),
+(3,1,1,1610.00,NULL),
+(4,2,1,1840.50,NULL),
+(5,2,2,1800.00,NULL),
+(6,2,3,1800.00,NULL),
+(7,3,3,10400.00,NULL),
+(8,3,2,1450.50,NULL),
+(9,3,1,1600.00,NULL),
+(10,4,2,900.00,NULL),
+(11,4,3,850.00,NULL),
+(12,4,1,960.50,NULL),
+(13,5,1,450.50,NULL),
+(14,5,2,400.00,NULL),
+(15,5,3,350.00,NULL),
+(16,6,3,400.00,NULL),
+(17,6,2,430.00,NULL),
+(18,6,1,475.00,NULL),
+(19,7,1,465.00,NULL),
+(20,8,3,410.00,NULL),
+(21,8,2,440.00,NULL),
+(22,7,3,410.00,NULL),
+(23,7,2,440.00,NULL),
+(24,8,1,465.00,NULL),
+(25,9,1,590.00,NULL),
+(26,9,3,520.50,NULL);
+
 
 SELECT pg_catalog.setval(pg_get_serial_sequence('book_store.price', 'price_id'), COALESCE(max(price_id), 1), true) FROM book_store.price;
 
